@@ -1,0 +1,54 @@
+---
+version: '2'
+services:
+  app:
+    build: ../maxbook
+    depends_on:
+      - maxscale
+    environment:
+      - DATABASE_URL=mysql2://root:rootpassword@maxscale:3306/maxbook_db
+    ports:
+      - "3000:3000"
+  maxpanel:
+    image: skord/maxpanel
+    depends_on:
+      - maxscale
+    environment:
+      - MAXSCALE_MAXINFO_JSON_LISTENER_TCP_ADDR=maxscale:8003
+    ports:
+      - "18080:80"
+  maxscale:
+    build: maxscale
+    depends_on:
+      - node1
+      - node2
+      - node3
+    ports:
+      - 13306:3306
+      - 8003:8003
+  node1:
+    image: galera
+    build: mariadb
+    hostname: node1
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_USER=repl
+      - MYSQL_PASSWORD=pass
+      - MYSQL_INITDB_SKIP_TZINFO=true
+    expose:
+      - 4567
+      - 3306
+    command: --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://
+  node2:
+    extends: node1
+    hostname: node2
+    depends_on:
+      - node1
+    command: --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://node1
+  node3:
+    extends: node1
+    hostname: node3
+    depends_on:
+      - node1
+      - node2
+    command: --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://node1,node2

@@ -1,0 +1,92 @@
+---
+version: '2'
+services:
+  app:
+    build: ../maxbook
+    depends_on:
+      - maxscale
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mysql2://app:pass@maxscale:13306/maxshop
+  maxpanel:
+    image: skord/maxpanel
+    depends_on:
+      - maxscale
+    environment:
+      - MAXSCALE_MAXINFO_JSON_LISTENER_TCP_ADDR=maxscale:8003
+    ports:
+      - "18080:80"
+  maxscale:
+    build: docker/maxscale
+    depends_on:
+      - replication-manager
+    command: maxscale -d
+    ports:
+      - "13306:13306"
+      - "13307:13307"
+      - "8003:8003"
+
+  replication-manager:
+    image: tanji/replication-manager:latest
+    command: monitor --daemon --interactive=false --hosts=mariadb1,mariadb2,mariadb3,mariadb4,mariadb5 --user=root --rpluser=repl:pass --http-server --http-bind-address=0.0.0.0
+    depends_on:
+      - agent1
+      - agent2
+      - agent3
+      - agent4
+      - agent5
+    tty: true
+    ports:
+      - '10001:10001'
+    stdin_open: true
+
+  mariadb1:
+    image: mariadb
+    build: docker/mariadb
+    command: --log-bin --skip-name-resolve --server_id=1
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_USER=repl
+      - MYSQL_PASSWORD=pass
+  agent1:
+    image: tanji/replication-manager:latest
+    command: agent --hosts=mariadb1 --user=root --rpluser=repl:pass
+    depends_on:
+      - mariadb1
+
+  mariadb2:
+    extends: mariadb1
+    command: --log-bin --skip-name-resolve --server_id=2
+  agent2:
+    image: tanji/replication-manager:latest
+    command: agent --hosts=mariadb2 --user=root --rpluser=repl:pass
+    depends_on:
+      - mariadb2
+
+  mariadb3:
+    extends: mariadb1
+    command: --log-bin --skip-name-resolve --server_id=3
+  agent3:
+    image: tanji/replication-manager:latest
+    command: agent --hosts=mariadb3 --user=root --rpluser=repl:pass
+    depends_on:
+      - mariadb3
+
+  mariadb4:
+    extends: mariadb1
+    command: --log-bin --skip-name-resolve --server_id=4
+  agent4:
+    image: tanji/replication-manager:latest
+    command: agent --hosts=mariadb4 --user=root --rpluser=repl:pass
+    depends_on:
+      - mariadb4
+
+  mariadb5:
+    extends: mariadb1
+    command: --log-bin --skip-name-resolve --server_id=5
+  agent5:
+    image: tanji/replication-manager:latest
+    command: agent --hosts=mariadb5 --user=root --rpluser=repl:pass
+    depends_on:
+      - mariadb5
