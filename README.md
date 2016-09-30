@@ -53,6 +53,8 @@ Then, start the app:
 $ docker-compose up -d app
 ```
 
+Now the app will be running on your docker host IP on port 3000.
+
 When you're done and want to clean up:
 
 ```
