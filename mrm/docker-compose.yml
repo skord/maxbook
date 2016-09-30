@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=mysql2://app:pass@maxscale:13306/maxshop
+      - DATABASE_URL=mysql2://appuser:app-pass@maxscale:13306/maxbook_db?reaping_frequency=5&dead_connection_timeout=5&pool=1
   maxpanel:
     image: skord/maxpanel
     depends_on:
@@ -18,10 +18,10 @@ services:
     ports:
       - "18080:80"
   maxscale:
-    build: docker/maxscale
+    build: maxscale
     depends_on:
       - replication-manager
-    command: maxscale -d
+    command: maxscale -d -l stdout
     ports:
       - "13306:13306"
       - "13307:13307"
@@ -29,7 +29,7 @@ services:
 
   replication-manager:
     image: tanji/replication-manager:latest
-    command: monitor --daemon --interactive=false --hosts=mariadb1,mariadb2,mariadb3,mariadb4,mariadb5 --user=root --rpluser=repl:pass --http-server --http-bind-address=0.0.0.0
+    command: monitor --daemon --interactive=false --hosts=mariadb1,mariadb2,mariadb3,mariadb4,mariadb5 --user=root:rootpassword --rpluser=repl:pass --http-server --http-bind-address=0.0.0.0
     depends_on:
       - agent1
       - agent2
@@ -43,12 +43,11 @@ services:
 
   mariadb1:
     image: mariadb
-    build: docker/mariadb
-    command: --log-bin --skip-name-resolve --server_id=1
+    build: mariadb
+    command: --log-bin --skip-name-resolve --server_id=1 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_USER=repl
-      - MYSQL_PASSWORD=pass
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_INITDB_SKIP_TZINFO=true
   agent1:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb1 --user=root --rpluser=repl:pass
@@ -57,7 +56,7 @@ services:
 
   mariadb2:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=2
+    command: --log-bin --skip-name-resolve --server_id=2 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
   agent2:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb2 --user=root --rpluser=repl:pass
@@ -66,7 +65,7 @@ services:
 
   mariadb3:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=3
+    command: --log-bin --skip-name-resolve --server_id=3 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
   agent3:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb3 --user=root --rpluser=repl:pass
@@ -75,7 +74,7 @@ services:
 
   mariadb4:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=4
+    command: --log-bin --skip-name-resolve --server_id=4 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
   agent4:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb4 --user=root --rpluser=repl:pass
@@ -84,7 +83,7 @@ services:
 
   mariadb5:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=5
+    command: --log-bin --skip-name-resolve --server_id=5 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
   agent5:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb5 --user=root --rpluser=repl:pass

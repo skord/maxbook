@@ -6,7 +6,7 @@ services:
     depends_on:
       - maxscale
     environment:
-      - DATABASE_URL=mysql2://root:rootpassword@maxscale:3306/maxbook_db
+      - DATABASE_URL=mysql2://appuser:app-pass@maxscale:3306/maxbook_db
     ports:
       - "3000:3000"
   maxpanel:
