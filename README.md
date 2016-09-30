@@ -6,7 +6,7 @@ directories.
 ### Galera Version
 
 This one has a weird bug I need to look into regarding bringing up the DB
-nodes that come up after node1. It works, it's just weird.
+nodes that come up after node1.
 
 Instructions:
 
@@ -15,8 +15,7 @@ $ cd galera
 $ docker-compose build # This one will take a while
 ```
 
-This is where the weirdness comes in. You'll want to bring up node1 and wait a
-minute for it to actually be ready.
+You'll want to bring up node1 and wait a minute for it to actually be ready.
 
 ```
 $ docker-compose up -d node1
@@ -34,6 +33,8 @@ When it fails, run it again in daemon mode:
 ```
 $ docker-compose up -d node2 node3
 ```
+
+This failure is an artifact of how the official docker image (not provided by us) tries to initialize tablespace on first boot.
 
 Then start maxscale and maxpanel:
 

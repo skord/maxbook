@@ -19,6 +19,7 @@ services:
       - "18080:80"
   maxscale:
     build: maxscale
+    command: maxscale -d -l stdout
     depends_on:
       - node1
       - node2
