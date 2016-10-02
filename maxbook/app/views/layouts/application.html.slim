@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    title
+      | Maxbook
+    = csrf_meta_tags
+    = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload'
+    = javascript_include_tag 'application', 'data-turbolinks-track': 'reload'
+  body
+    = render "shared/topbar"
+    - if notice
+      .ui.positive.message
+        p= notice
+    - if alert
+      .ui.error.message
+        p= alert
+    == yield

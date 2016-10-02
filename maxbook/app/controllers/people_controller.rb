@@ -1,10 +1,11 @@
 class PeopleController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_person, only: [:show, :edit, :update, :destroy]
 
   # GET /people
   # GET /people.json
   def index
-    @people = Person.all
+    @people = current_user.people.all.page(params[:page]).per(10)
   end
 
   # GET /people/1
@@ -14,7 +15,7 @@ class PeopleController < ApplicationController
 
   # GET /people/new
   def new
-    @person = Person.new
+    @person = current_user.people.new(avatar: FFaker::Avatar.image)
   end
 
   # GET /people/1/edit
@@ -24,7 +25,7 @@ class PeopleController < ApplicationController
   # POST /people
   # POST /people.json
   def create
-    @person = Person.new(person_params)
+    @person = current_user.people.new(person_params)
 
     respond_to do |format|
       if @person.save
@@ -64,7 +65,7 @@ class PeopleController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_person
-      @person = Person.find(params[:id])
+      @person = current_user.people.find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

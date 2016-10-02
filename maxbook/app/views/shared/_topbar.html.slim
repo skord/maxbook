@@ -1,0 +1,8 @@
+.ui.menu
+  .header.item= link_to "AwesomeCRM", root_path
+  =link_to "People", people_path, class: 'item'
+  .right.menu
+    - if current_user
+      =link_to "Logout", destroy_user_session_path, method: :delete, class: 'item'
+    - else
+      =link_to "Sign In", new_user_session_path, class: 'item'

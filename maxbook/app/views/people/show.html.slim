@@ -1,0 +1,17 @@
+.ui.card
+  .image
+    = image_tag @person.avatar
+  .content
+    .header= @person.name
+    .meta= "Created #{time_ago_in_words(@person.created_at)} ago"
+    .description
+      = @person.address
+      br
+      = "#{@person.city}, #{@person.state}"
+  .extra.content
+    .ui.two.buttons
+      = link_to "Edit", edit_person_path(@person), class: 'ui basic green button'
+      = link_to "Delete", person_path(@person), method: :delete, data: {confirm: "Are you sure?"}, class: 'ui basic red button'
+
+
+= link_to 'Back', people_path, class: 'ui blue button'
