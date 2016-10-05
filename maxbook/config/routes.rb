@@ -1,8 +1,9 @@
 Rails.application.routes.draw do
-  get 'welcome/index'
 
   devise_for :users
-  resources :people
+  resources :people do
+    resources :notes, only: [:index, :create, :destroy]
+  end
 
   authenticated :user do
     root 'people#index', as: :authenticated_root

@@ -1,5 +1,6 @@
 h1
-  | Contacts (#{Person.count})
+  | Contacts 
+i= page_entries_info @people
 table.ui.celled.table
   thead
     tr
@@ -12,14 +13,14 @@ table.ui.celled.table
         | City
       th
         | State
-      th[colspan="3"]
+      th
   tbody
     - @people.each do |person|
       tr
         td
           = image_tag person.avatar, size: "32x32"
         td
-          = person.name
+          = link_to person.name, person_notes_path(person)
         td
           = person.address
         td
@@ -27,14 +28,10 @@ table.ui.celled.table
         td
           = person.state
         td
-          = link_to 'Show', person
-        td
-          = link_to 'Edit', edit_person_path(person)
-        td
-          = link_to 'Destroy', person, method: :delete, data: { confirm: 'Are you sure?' }
+          = link_to 'Notes', person_notes_path(person)
   tfoot
     tr
-      th colspan="8"
+      th colspan="6"
         = link_to 'New Person', new_person_path, class: 'ui button primary'
         = paginate @people
 

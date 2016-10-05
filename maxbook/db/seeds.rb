@@ -29,6 +29,9 @@ User.find_each do |user|
     city= FFaker::AddressUS.city
     state= FFaker::AddressUS.state
     avatar = FFaker::Avatar.image
-    Person.create(name: name, address: address, city: city, state: state, avatar: avatar, user_id: user.id)
+    person = Person.create(name: name, address: address, city: city, state: state, avatar: avatar, user_id: user.id)
+    5.times do
+      note = person.notes.create(note: FFaker::Lorem.paragraph)
+    end
   end
 end

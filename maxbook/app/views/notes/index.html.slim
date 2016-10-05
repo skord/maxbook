@@ -1,0 +1,35 @@
+.ui.grid
+  .four.wide.column
+    .ui.card
+      .image
+        = image_tag @person.avatar
+      .content
+        .header= @person.name
+        .meta= "Created #{time_ago_in_words(@person.created_at)} ago"
+        .description
+          = @person.address
+          br
+          = "#{@person.city}, #{@person.state}"
+      .extra.content
+        .ui.two.buttons
+          = link_to "Edit", edit_person_path(@person), class: 'ui basic green button'
+          = link_to "Delete", person_path(@person), method: :delete, data: {confirm: "Are you sure?"}, class: 'ui basic red button'
+    = link_to 'Back', people_path, class: 'ui blue button'
+  .twelve.wide.column
+    h1 Notes
+    = form_for([@person, @new_note], html: {class: 'ui form'}) do |f|
+      - if @new_note.errors.any?
+        #error_explanation
+          h2
+            = pluralize(@new_note.errors.count, "error")
+            |  prohibited this person from being saved:
+          ul
+            - @new_note.errors.full_messages.each do |message|
+              li
+                = message
+      .field
+        = f.label :note
+        = f.text_field :note
+      .actions
+        = f.submit 'New Note', class: 'ui button'
+    = render @notes
