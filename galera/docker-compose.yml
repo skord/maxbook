@@ -33,12 +33,13 @@ services:
     hostname: node1
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_USER=repl
-      - MYSQL_PASSWORD=pass
       - MYSQL_INITDB_SKIP_TZINFO=true
     expose:
       - 4567
+      - 4567/udp
       - 3306
+      - 4444
+      - 4568
     command: --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://
   node2:
     extends: node1

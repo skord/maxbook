@@ -1,3 +1,4 @@
+CREATE USER 'repl' IDENTIFIED BY 'pass';
 GRANT REPLICATION SLAVE ON *.* TO 'repl';
 
 CREATE USER 'maxscale' IDENTIFIED BY 'pass';
