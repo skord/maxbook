@@ -27,6 +27,33 @@ services:
     ports:
       - 13306:3306
       - 8003:8003
+  influxdb:
+    image: influxdb:0.13-alpine
+    depends_on:
+      - node1
+      - node2
+      - node3
+    expose:
+      - 8083
+      - 8086
+  telegraf:
+    image: telegraf
+    hostname: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - node1
+      - node2
+      - node3
+      - influxdb
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - influxdb
+    ports:
+      - '13000:3000'
+
+
   node1:
     image: galera
     build: mariadb
