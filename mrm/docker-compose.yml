@@ -26,6 +26,30 @@ services:
       - "13306:13306"
       - "13307:13307"
       - "8003:8003"
+  influxdb:
+    image: influxdb:latest
+    expose:
+      - 8083
+      - 8086
+  telegraf:
+    image: telegraf
+    hostname: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - mariadb1
+      - mariadb2
+      - mariadb3
+      - mariadb4
+      - mariadb5
+      - influxdb
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - influxdb
+    ports:
+      - '13000:3000'
 
   replication-manager:
     image: tanji/replication-manager:latest
@@ -44,6 +68,7 @@ services:
   mariadb1:
     image: mariadb
     build: mariadb
+    hostname: mariadb1
     command: --log-bin --skip-name-resolve --server_id=1 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
