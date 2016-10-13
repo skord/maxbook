@@ -52,7 +52,12 @@ services:
       - influxdb
     ports:
       - '13000:3000'
-
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_DASHBOARDS_JSON_ENABLED=true
+      - GF_DASHBOARDS_JSON_PATH=/var/lib/grafana/dashboards
+      - GF_SECURITY_ADMIN_PASSWORD=nimda
 
   node1:
     image: galera
