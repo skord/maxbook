@@ -1,0 +1,66 @@
+# my global config
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'my-project'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - "alert.rules"
+  # - "first.rules"
+  # - "second.rules"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'mariadb1'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['exporter1:9104']
+        labels:
+          instance: 'mariadb1'
+
+  - job_name: 'mariadb2'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['exporter2:9104']
+        labels:
+          instance: 'mariadb2'
+
+  - job_name: 'mariadb3'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['exporter3:9104']
+        labels:
+          instance: 'mariadb3'
+
+  - job_name: 'mariadb4'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['exporter4:9104']
+        labels:
+          instance: 'mariadb4'
+
+  - job_name: 'mariadb5'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['exporter5:9104']
+        labels:
+          instance: 'mariadb5'

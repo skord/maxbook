@@ -1,0 +1,97 @@
+[Replication Monitor]
+type=monitor
+module=mysqlmon
+servers=mariadb1, mariadb2, mariadb3, mariadb4, mariadb5
+user=maxscale
+passwd=pass
+monitor_interval=1000
+#script=/usr/local/bin/failover.sh
+#events=master_down
+
+[Splitter Service]
+type=service
+router=readwritesplit
+servers=mariadb1, mariadb2, mariadb3, mariadb4, mariadb5
+max_slave_replication_lag=30
+user=maxscale
+passwd=pass
+enable_root_user=1
+router_options=master_failure_mode=fail_instantly
+
+[Splitter Listener]
+type=listener
+service=Splitter Service
+protocol=MySQLClient
+port=13306
+
+[Read-Only Service]
+type=service
+router=readconnroute
+servers=mariadb4, mariadb5
+user=maxscale
+passwd=pass
+router_options=slave
+
+[Read-Only Listener]
+type=listener
+service=Read-Only Service
+protocol=MySQLClient
+port=13307
+
+[mariadb1]
+type=server
+address=mariadb1
+port=3306
+protocol=MySQLBackend
+
+[mariadb2]
+type=server
+address=mariadb2
+port=3306
+protocol=MySQLBackend
+
+[mariadb3]
+type=server
+address=mariadb3
+port=3306
+protocol=MySQLBackend
+
+[mariadb4]
+type=server
+address=mariadb4
+port=3306
+protocol=MySQLBackend
+
+[mariadb5]
+type=server
+address=mariadb5
+port=3306
+protocol=MySQLBackend
+
+[MaxAdmin Service]
+type=service
+router=cli
+
+[MaxAdmin Listener]
+type=listener
+service=MaxAdmin Service
+protocol=maxscaled
+port=6603
+
+[MaxInfo]
+type=service
+router=maxinfo
+user=myuser
+passwd=myreallysecretpassword
+
+[MaxInfo JSON Listener]
+type=listener
+service=MaxInfo
+protocol=HTTPD
+port=8003
+
+[MaxInfo Listener]
+type=listener
+service=MaxInfo
+protocol=MySQLClient
+port=9003
