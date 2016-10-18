@@ -112,23 +112,18 @@ $ docker-compose stop
 $ docker-compose rm -v -f
 ```
 
-##### Demo of Failure with the MRM setup.
+### Alternate Stacks with Prometheus Monitoring
 
-Rails has a timer that runs periodicaly that will reap dead threads from the
-connection pool. In production, you'd probably tweak your app to be a little more
-responsive to failure than this, but we can try simulating a failure in the demo
-to see how it's handled.
+In the directories with a -prom at the end of them, there is a different compose
+setup that includes Grafana and Prometheus, as well as exporters for each MariaDB
+server and the MaxScale instance. On these instances, Grafana will be port mapped
+to port 13000 and Prometheus is mapped to 9090.
 
-If your docker instance isn't running on localhost, substitute that host for localhost in the steps below:
+The Grafana container will not have a data source on first run, so you'll have to add one
+the first time you bring it up. The easiest way is to run it via compose:
 
-1. Go to http://localhost:3000
-2. Pick a user and click "Show" on that user's line.
-3. In a new browser tab, go to http://localhost:10001 and click the "Switchover" button and confirm the switch.
-4. Refresh the demo app tab. You shouldn't see any problems because maxscale handles the read split and Rails has no reason to mark any connection threads as dead.
-5. Click the "Edit" link on the user page.
-6. Click the "Update Person" button. You should see an error page now.
-7. Hit the refresh button in your browser a few times and confirm the form resubmission.
-7. Click the "Show" link on the user page.
-8. Click the "Edit" link on the user page, then the "Update Person" button.
-9. Wait about 5 seconds to ensure the web server has reaped the dead connection.
-10. Click the "Update Person" button, it should just work.
+```
+$ docker-compose run --rm app curl http://admin:admin@grafana:3000/api/datasources -X POST -H 'Content-Type: application/json;charset=UTF-8' --data-binary '{"name":"Prometheus","type":"prometheus","url":"http://prometheus:9090","access":"proxy","isDefault":true}'
+```
+
+Unless you wipe your containers clean, you shouldn't need to run this again.
