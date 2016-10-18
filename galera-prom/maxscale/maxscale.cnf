@@ -1,0 +1,58 @@
+[Galera Monitor]
+type=monitor
+module=galeramon
+servers=node1, node2, node3
+user=maxscale
+passwd=pass
+disable_master_failback=1
+
+[Splitter Service]
+type=service
+router=readwritesplit
+servers=node1, node2, node3
+max_slave_replication_lag=30
+user=maxscale
+passwd=pass
+enable_root_user=1
+
+[Splitter Listener]
+type=listener
+service=Splitter Service
+protocol=MySQLClient
+port=3306
+
+[node1]
+type=server
+address=node1
+port=3306
+protocol=MySQLBackend
+
+[node2]
+type=server
+address=node2
+port=3306
+protocol=MySQLBackend
+
+[node3]
+type=server
+address=node3
+port=3306
+protocol=MySQLBackend
+
+[MaxInfo]
+type=service
+router=maxinfo
+user=myuser
+passwd=myreallysecretpassword
+
+[MaxInfo JSON Listener]
+type=listener
+service=MaxInfo
+protocol=HTTPD
+port=8003
+
+[MaxInfo Listener]
+type=listener
+service=MaxInfo
+protocol=MySQLClient
+port=9003

@@ -26,6 +26,21 @@ services:
       - "13306:13306"
       - "13307:13307"
       - "8003:8003"
+      - "9003:9003"
+
+  maxscale_exporter:
+    build: ../maxscale_exporter
+    image: maxscale_exporter
+    environment:
+      - MAXSCALE_HOST=maxscale
+      - MAXSCALE_PORT=9003
+      - MAXSCALE_PASSWORD=myreallysecretpassword
+      - MAXSCALE_USERNAME=myuser
+    depends_on:
+      - maxscale
+    expose:
+      - 9154
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -76,7 +91,7 @@ services:
     image: mariadb
     build: mariadb
     hostname: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=1 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
+    command: --log-bin --skip-name-resolve --server_id=1 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
       - MYSQL_INITDB_SKIP_TZINFO=true
@@ -98,11 +113,21 @@ services:
       - '-collect.perf_schema.file_events=true'
       - '-collect.binlog_size=true'
       - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.userstats=true'
+      - '-collect.info_schema.tablestats=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.innodb_metrics=true'
+      - '-collect.info_schema.query_response_time=true'
+      - '-collect.perf_schema.eventswaits=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.perf_schema.indexiowaits=true'
+      - '-collect.perf_schema.tableiowaits=true'
+      - '-collect.perf_schema.tablelocks=true'
 
 
   mariadb2:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=2 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
+    command: --log-bin --skip-name-resolve --server_id=2 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
   agent2:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb2 --user=root --rpluser=repl:pass
@@ -121,12 +146,21 @@ services:
         - '-collect.perf_schema.file_events=true'
         - '-collect.binlog_size=true'
         - '-collect.info_schema.processlist=true'
-
+        - '-collect.info_schema.userstats=true'
+        - '-collect.info_schema.tablestats=true'
+        - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.innodb_metrics=true'
+        - '-collect.info_schema.query_response_time=true'
+        - '-collect.perf_schema.eventswaits=true'
+        - '-collect.perf_schema.file_events=true'
+        - '-collect.perf_schema.indexiowaits=true'
+        - '-collect.perf_schema.tableiowaits=true'
+        - '-collect.perf_schema.tablelocks=true'
 
 
   mariadb3:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=3 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
+    command: --log-bin --skip-name-resolve --server_id=3 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
   agent3:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb3 --user=root --rpluser=repl:pass
@@ -145,10 +179,19 @@ services:
         - '-collect.perf_schema.file_events=true'
         - '-collect.binlog_size=true'
         - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.userstats=true'
+        - '-collect.info_schema.tablestats=true'
+        - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.query_response_time=true'
+        - '-collect.perf_schema.eventswaits=true'
+        - '-collect.perf_schema.file_events=true'
+        - '-collect.perf_schema.indexiowaits=true'
+        - '-collect.perf_schema.tableiowaits=true'
+        - '-collect.perf_schema.tablelocks=true'
 
   mariadb4:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=4 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
+    command: --log-bin --skip-name-resolve --server_id=4 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
   agent4:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb4 --user=root --rpluser=repl:pass
@@ -167,10 +210,20 @@ services:
         - '-collect.perf_schema.file_events=true'
         - '-collect.binlog_size=true'
         - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.userstats=true'
+        - '-collect.info_schema.tablestats=true'
+        - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.innodb_metrics=true'
+        - '-collect.info_schema.query_response_time=true'
+        - '-collect.perf_schema.eventswaits=true'
+        - '-collect.perf_schema.file_events=true'
+        - '-collect.perf_schema.indexiowaits=true'
+        - '-collect.perf_schema.tableiowaits=true'
+        - '-collect.perf_schema.tablelocks=true'
 
   mariadb5:
     extends: mariadb1
-    command: --log-bin --skip-name-resolve --server_id=5 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1
+    command: --log-bin --skip-name-resolve --server_id=5 --sync_binlog=1 --innodb_flush_log_at_trx_commit=1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
   agent5:
     image: tanji/replication-manager:latest
     command: agent --hosts=mariadb5 --user=root --rpluser=repl:pass
@@ -189,3 +242,13 @@ services:
         - '-collect.perf_schema.file_events=true'
         - '-collect.binlog_size=true'
         - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.userstats=true'
+        - '-collect.info_schema.tablestats=true'
+        - '-collect.info_schema.processlist=true'
+        - '-collect.info_schema.innodb_metrics=true'
+        - '-collect.info_schema.query_response_time=true'
+        - '-collect.perf_schema.eventswaits=true'
+        - '-collect.perf_schema.file_events=true'
+        - '-collect.perf_schema.indexiowaits=true'
+        - '-collect.perf_schema.tableiowaits=true'
+        - '-collect.perf_schema.tablelocks=true'

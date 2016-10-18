@@ -1,0 +1,171 @@
+---
+version: '2'
+services:
+  app:
+    build: ../maxbook
+    depends_on:
+      - maxscale
+    environment:
+      - DATABASE_URL=mysql2://appuser:app-pass@maxscale:3306/maxbook_db
+    ports:
+      - "3000:3000"
+  maxpanel:
+    image: skord/maxpanel
+    depends_on:
+      - maxscale
+    environment:
+      - MAXSCALE_MAXINFO_JSON_LISTENER_TCP_ADDR=maxscale:8003
+    ports:
+      - "18080:80"
+  maxscale:
+    build: maxscale
+    command: maxscale -d -l stdout
+    depends_on:
+      - node1
+      - node2
+      - node3
+    ports:
+      - 13306:3306
+      - 8003:8003
+      - 9003:9003
+  maxscale_exporter:
+    build: ../maxscale_exporter
+    image: maxscale_exporter
+    environment:
+      - MAXSCALE_HOST=maxscale
+      - MAXSCALE_PORT=9003
+      - MAXSCALE_PASSWORD=myreallysecretpassword
+      - MAXSCALE_USERNAME=myuser
+    depends_on:
+      - maxscale
+    expose:
+      - 9154
+    ports:
+      - 9154:9154
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    depends_on:
+      - exporter1
+      - exporter2
+      - exporter3
+      - maxscale_exporter
+
+
+  grafana:
+    image: grafana/grafana
+    build: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - '13000:3000'
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboard
+    environment:
+      - GF_DASHBOARDS_JSON_ENABLED=true
+      - GF_DASHBOARDS_JSON_PATH=/var/lib/grafana/dashboard
+
+  node1:
+    image: galera
+    build: mariadb
+    hostname: node1
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_INITDB_SKIP_TZINFO=true
+    expose:
+      - 4567
+      - 4567/udp
+      - 3306
+      - 4444
+      - 4568
+    command: --log-bin --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm:// --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
+  exporter1:
+    image: prom/mysqld-exporter
+    expose:
+      - 9104
+    depends_on:
+      - node1
+    environment:
+      - DATA_SOURCE_NAME=exporter:pass@(node1:3306)/
+    command:
+      - '-collect.perf_schema.eventsstatements=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.binlog_size=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.userstats=true'
+      - '-collect.info_schema.tablestats=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.innodb_metrics=true'
+      - '-collect.info_schema.query_response_time=true'
+      - '-collect.perf_schema.eventswaits=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.perf_schema.indexiowaits=true'
+      - '-collect.perf_schema.tableiowaits=true'
+      - '-collect.perf_schema.tablelocks=true'
+  node2:
+    extends: node1
+    hostname: node2
+    depends_on:
+      - node1
+    command: --log-bin --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://node1 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
+  exporter2:
+    image: prom/mysqld-exporter
+    expose:
+      - 9104
+    depends_on:
+      - node2
+    environment:
+      - DATA_SOURCE_NAME=exporter:pass@(node2:3306)/
+    command:
+      - '-collect.perf_schema.eventsstatements=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.binlog_size=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.userstats=true'
+      - '-collect.info_schema.tablestats=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.innodb_metrics=true'
+      - '-collect.info_schema.query_response_time=true'
+      - '-collect.perf_schema.eventswaits=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.perf_schema.indexiowaits=true'
+      - '-collect.perf_schema.tableiowaits=true'
+      - '-collect.perf_schema.tablelocks=true'
+  node3:
+    extends: node1
+    hostname: node3
+    depends_on:
+      - node1
+      - node2
+    command: --log-bin --skip-name-resolve --wsrep-cluster-name=local-test --wsrep-cluster-address=gcomm://node1,node2 --userstat=1 --innodb_monitor_enable=all --plugin-load=query_response_time --query_response_time_stats=1 --performance_schema=on
+  exporter3:
+    image: prom/mysqld-exporter
+    expose:
+      - 9104
+    depends_on:
+      - node3
+    environment:
+      - DATA_SOURCE_NAME=exporter:pass@(node3:3306)/
+    command:
+      - '-collect.perf_schema.eventsstatements=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.binlog_size=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.userstats=true'
+      - '-collect.info_schema.tablestats=true'
+      - '-collect.info_schema.processlist=true'
+      - '-collect.info_schema.innodb_metrics=true'
+      - '-collect.info_schema.query_response_time=true'
+      - '-collect.perf_schema.eventswaits=true'
+      - '-collect.perf_schema.file_events=true'
+      - '-collect.perf_schema.indexiowaits=true'
+      - '-collect.perf_schema.tableiowaits=true'
+      - '-collect.perf_schema.tablelocks=true'
