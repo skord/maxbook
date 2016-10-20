@@ -62,7 +62,7 @@ services:
 
   grafana:
     image: grafana/grafana
-    build: grafana
+    build: ../grafana
     depends_on:
       - prometheus
     ports:

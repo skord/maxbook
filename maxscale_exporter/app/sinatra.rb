@@ -5,8 +5,12 @@ require_relative './lib/exporter/helpers/counter'
 require_relative './lib/exporter/helpers/gauge'
 require_relative './lib/exporter/query_obj/event_times'
 require_relative './lib/exporter/query_obj/variables'
+require_relative './lib/exporter/query_obj/servers'
+require_relative './lib/exporter/query_obj/services'
 require_relative './lib/exporter/query_obj/status'
 require_relative './lib/exporter/decorator/event_times'
+require_relative './lib/exporter/decorator/servers'
+require_relative './lib/exporter/decorator/services'
 
 CLIENT = Mysql2::Client.new(host: ENV['MAXSCALE_HOST'],
                             username: ENV['MAXSCALE_USERNAME'],
@@ -28,6 +32,8 @@ get '/metrics' do
   @queued = Exporter::Decorator::EventTimes.new('maxscale_events', eventtimes).queued
   @variables = Exporter::QueryObj::Variables.new
   @status = Exporter::QueryObj::Status.new
+  @servers = Exporter::Decorator::Servers.new(Exporter::QueryObj::Servers.new).to_gauges
+  @services = Exporter::Decorator::Services.new(Exporter::QueryObj::Services.new).to_gauges
   content_type 'text/plain'
   erb :metrics
 end

@@ -1,9 +1,9 @@
-# TYPE maxscale_events_executed_milliseconds summary
-# HELP maxscale_events_executed_milliseconds A summary of event execution
+# TYPE maxscale_events_executed_seconds histogram
+# HELP maxscale_events_executed_seconds A histogram of event execution
 <%= @queued %>
 
-# TYPE maxscale_events_queued_milliseconds summary
-# HELP maxscale_events_queued_milliseconds A summary of event queueing
+# TYPE maxscale_events_queued_seconds histogram
+# HELP maxscale_events_queued_seconds A histogram of event queueing
 <%= @executed %>
 
 <%= counter("maxscale_variables_maxscale_threads", "Configured Thread Count", @variables.maxscale_threads) %>
@@ -58,4 +58,8 @@
 
 <%= gauge("maxscale_status_max_event_queue_time", "Maximum event queue time", @status.max_event_queue_time) %>
 
-<%= gauge("maxscale_status_max_event_execution_time", "Maximum event Execution time", @status.max_event_execution_time) %><%= "\n" %>
+<%= gauge("maxscale_status_max_event_execution_time", "Maximum event Execution time", @status.max_event_execution_time) %>
+
+<%= @servers %>
+
+<%= @services %>
