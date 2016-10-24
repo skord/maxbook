@@ -68,6 +68,6 @@ scrape_configs:
   - job_name: 'maxscale'
     scrape_interval: 5s
     static_configs:
-      - targets: ['maxscale_exporter:9154']
+      - targets: ['maxscale_exporter:9195']
         labels:
           instance: 'maxscale'

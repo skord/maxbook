@@ -31,10 +31,14 @@ services:
   maxscale_exporter:
     build: ../maxscale_exporter
     image: maxscale_exporter
+    environment:
+      - MAXSCALE_MAXINFO_JSON_LISTENER_TCP_ADDR=maxscale:8003
+      - MAXSCALE_EXPORTER_LISTEN_ADDR=:9195
     depends_on:
       - maxscale
     expose:
-      - 9154
+      - 9195
+
 
   prometheus:
     image: prom/prometheus

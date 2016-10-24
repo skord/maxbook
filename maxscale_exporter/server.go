@@ -9,6 +9,7 @@ import (
   "io/ioutil"
   "strconv"
   "time"
+  "os"
 )
 
 type Server struct {
@@ -41,9 +42,16 @@ type Event struct {
   Executed int  `json:"No. Events Executed"`
 }
 
+func maxscaleUrl(path string) string {
+  return "http://" + os.Getenv("MAXSCALE_MAXINFO_JSON_LISTENER_TCP_ADDR") + path
+}
+
+func listenAddr() string {
+  return os.Getenv("MAXSCALE_EXPORTER_LISTEN_ADDR")
+}
 
 func servers(w http.ResponseWriter, r *http.Request) {
-  url := "http://maxscale:8003/servers"
+  url := maxscaleUrl("/servers")
   resp, err := http.Get(url)
 
   defer resp.Body.Close()
@@ -70,12 +78,13 @@ func servers(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "#TYPE maxscale_servers_connections gauge\n")
   fmt.Fprintf(w, "#HELP maxscale_servers_connections Server connections\n")
   for _,element := range jsonData {
-    fmt.Fprintf(w, "maxscale_servers_connections{server=\"%s\", address=\"%s\", port=\"%d\"} %d\n\n", element.Server, element.Address, element.Port, element.Connections)
+    fmt.Fprintf(w, "maxscale_servers_connections{server=\"%s\", address=\"%s\", port=\"%d\"} %d\n", element.Server, element.Address, element.Port, element.Connections)
   }
+  fmt.Fprintf(w, "\n")
 }
 
 func services(w http.ResponseWriter, r *http.Request) {
-  url := "http://maxscale:8003/services"
+  url := maxscaleUrl("/services")
   resp, err := http.Get(url)
 
   defer resp.Body.Close()
@@ -102,14 +111,15 @@ func services(w http.ResponseWriter, r *http.Request) {
   // fmt.Println(jsonData)
   for _,element := range jsonData {
 
-    fmt.Fprintf(w, "maxscale_services_sessions{name=\"%s\", router=\"%s\"} %d\n\n", element.Name, element.Router, element.Sessions)
+    fmt.Fprintf(w, "maxscale_services_sessions{name=\"%s\", router=\"%s\"} %d\n", element.Name, element.Router, element.Sessions)
 
 
   }
+  fmt.Fprintf(w, "\n")
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-  url := "http://maxscale:8003/status"
+  url := maxscaleUrl("/status")
   resp, err := http.Get(url)
 
   defer resp.Body.Close()
@@ -137,41 +147,41 @@ func status(w http.ResponseWriter, r *http.Request) {
   for _,element := range jsonData {
 
     switch element.Name {
-    case "Uptime",
-         "Uptime_since_flush_status",
-         "Threads_created",
-         "Threadpool_threads",
-         "Read_events",
-         "Write_events",
-         "Hangup_events",
-         "Error_events",
-         "Accept_events":
-         fmt.Fprintf(w, "#TYPE maxscale_status_%s counter\n", strings.ToLower(element.Name))
-         fmt.Fprintf(w, "#HELP maxscale_status_%s %s\n", strings.ToLower(element.Name), element.Name)
-         fmt.Fprintf(w, "maxscale_status_%s %d\n\n", strings.ToLower(element.Name), element.Value)
-    case "Threads_running",
-         "Threads_connected",
-         "Connections",
-         "Client_connections",
-         "Backend_connections",
-         "Listeners",
-         "Zombie_connections",
-         "Internal_descriptors",
-         "Event_queue_length",
-         "Pending_events",
-         "Max_event_queue_length",
-         "Max_event_queue_time",
-         "Max_event_execution_time":
-         fmt.Fprintf(w, "#TYPE maxscale_status_%s gauge\n", strings.ToLower(element.Name))
-         fmt.Fprintf(w, "#HELP maxscale_status_%s %s\n", strings.ToLower(element.Name), element.Name)
-         fmt.Fprintf(w, "maxscale_status_%s %d\n\n", strings.ToLower(element.Name), element.Value)
+      case "Uptime",
+      "Uptime_since_flush_status",
+      "Threads_created",
+      "Threadpool_threads",
+      "Read_events",
+      "Write_events",
+      "Hangup_events",
+      "Error_events",
+      "Accept_events":
+      fmt.Fprintf(w, "#TYPE maxscale_status_%s counter\n", strings.ToLower(element.Name))
+      fmt.Fprintf(w, "#HELP maxscale_status_%s %s\n", strings.ToLower(element.Name), element.Name)
+      fmt.Fprintf(w, "maxscale_status_%s %d\n\n", strings.ToLower(element.Name), element.Value)
+      case "Threads_running",
+      "Threads_connected",
+      "Connections",
+      "Client_connections",
+      "Backend_connections",
+      "Listeners",
+      "Zombie_connections",
+      "Internal_descriptors",
+      "Event_queue_length",
+      "Pending_events",
+      "Max_event_queue_length",
+      "Max_event_queue_time",
+      "Max_event_execution_time":
+      fmt.Fprintf(w, "#TYPE maxscale_status_%s gauge\n", strings.ToLower(element.Name))
+      fmt.Fprintf(w, "#HELP maxscale_status_%s %s\n", strings.ToLower(element.Name), element.Name)
+      fmt.Fprintf(w, "maxscale_status_%s %d\n\n", strings.ToLower(element.Name), element.Value)
 
     }
   }
 }
 
 func variables(w http.ResponseWriter, r *http.Request) {
-  url := "http://maxscale:8003/variables"
+  url := maxscaleUrl("/variables")
   resp, err := http.Get(url)
 
   defer resp.Body.Close()
@@ -200,23 +210,23 @@ func variables(w http.ResponseWriter, r *http.Request) {
 
     switch element.Name {
     case "MAXSCALE_UPTIME":
-         fmt.Fprintf(w, "#TYPE maxscale_variables_%s counter\n", strings.ToLower(element.Name))
-         fmt.Fprintf(w, "#HELP maxscale_variables_%s %s\n", strings.ToLower(element.Name), element.Name)
-         fmt.Fprintf(w, "maxscale_variables_%s %s\n\n", strings.ToLower(element.Name), element.Value)
-    case "MAXSCALE_SESSIONS",
-         "MAXSCALE_POLLSLEEP",
-         "MAXSCALE_NBPOLLS",
-         "MAXSCALE_THREADS":
-         fmt.Fprintf(w, "#TYPE maxscale_variables_%s gauge\n", strings.ToLower(element.Name))
-         fmt.Fprintf(w, "#HELP maxscale_variables_%s %s\n", strings.ToLower(element.Name), element.Name)
-         fmt.Fprintf(w, "maxscale_variables_%s %s\n\n", strings.ToLower(element.Name), element.Value)
+      fmt.Fprintf(w, "#TYPE maxscale_variables_%s counter\n", strings.ToLower(element.Name))
+      fmt.Fprintf(w, "#HELP maxscale_variables_%s %s\n", strings.ToLower(element.Name), element.Name)
+      fmt.Fprintf(w, "maxscale_variables_%s %s\n\n", strings.ToLower(element.Name), element.Value)
+      case "MAXSCALE_SESSIONS",
+      "MAXSCALE_POLLSLEEP",
+      "MAXSCALE_NBPOLLS",
+      "MAXSCALE_THREADS":
+      fmt.Fprintf(w, "#TYPE maxscale_variables_%s gauge\n", strings.ToLower(element.Name))
+      fmt.Fprintf(w, "#HELP maxscale_variables_%s %s\n", strings.ToLower(element.Name), element.Name)
+      fmt.Fprintf(w, "maxscale_variables_%s %s\n\n", strings.ToLower(element.Name), element.Value)
 
     }
   }
 }
 
 func events(w http.ResponseWriter, r *http.Request) {
-  url := "http://maxscale:8003/event/times"
+  url := maxscaleUrl("/event/times")
   resp, err := http.Get(url)
 
   defer resp.Body.Close()
@@ -250,7 +260,7 @@ func events(w http.ResponseWriter, r *http.Request) {
     executedtime += 0.1
     switch element.Duration {
     case "< 100ms":
-      fmt.Fprintf(w, "maxscale_events_executed_seconds_bucket{le=\"0.1\"} %d\n", executedcount)
+      fmt.Fprintf(w, "maxscale_events_executed_seconds_bucket{le=\"0.100000\"} %d\n", executedcount)
     case "> 3000ms":
       fmt.Fprintf(w, "maxscale_events_executed_seconds_bucket{le=\"+Inf\"} %d\n", executedcount)
     default:
@@ -295,9 +305,7 @@ func events(w http.ResponseWriter, r *http.Request) {
 func metrics(w http.ResponseWriter, r *http.Request) {
   t := time.Now()
   r.ParseForm()
-  fmt.Println(r.Form)
-  fmt.Println()
-  fmt.Printf("[%s] remote=%s protocol=%s useragent=%s accept_header=%s accept_encoding=%s contentlength=%d host=%s requesturl=%s", t.Format(time.RFC3339), r.RemoteAddr, r.Proto, r.Header["User-Agent"][0], r.Header["Accept"][0], r.Header["Accept-Encoding"][0], r.ContentLength, r.Host, r.RequestURI)
+  fmt.Printf("[%s] remote=%s protocol=%s useragent=%s contentlength=%d host=%s request_url=%s", t.Format(time.RFC3339), r.RemoteAddr, r.Proto, r.Header["User-Agent"][0], r.ContentLength, r.Host, r.RequestURI)
   fmt.Println(r.Form["url_long"])
   for k, v := range r.Form {
     fmt.Println("key:", k)
@@ -310,9 +318,11 @@ func metrics(w http.ResponseWriter, r *http.Request) {
   events(w, r)
 }
 
+
+
 func main() {
   http.HandleFunc("/metrics", metrics)
-  err := http.ListenAndServe(":9154", nil)
+  err := http.ListenAndServe(listenAddr(), nil)
   if err != nil {
     log.Fatal("ListenAndServe: ", err)
   }
