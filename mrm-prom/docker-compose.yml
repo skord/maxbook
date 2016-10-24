@@ -31,11 +31,6 @@ services:
   maxscale_exporter:
     build: ../maxscale_exporter
     image: maxscale_exporter
-    environment:
-      - MAXSCALE_HOST=maxscale
-      - MAXSCALE_PORT=9003
-      - MAXSCALE_PASSWORD=myreallysecretpassword
-      - MAXSCALE_USERNAME=myuser
     depends_on:
       - maxscale
     expose:
